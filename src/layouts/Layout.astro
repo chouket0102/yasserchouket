@@ -1,0 +1,202 @@
+---
+import { ViewTransitions } from "astro:transitions";
+import Loader from "../React/Loader";
+import ChatManager from "../React/ChatManager";
+
+interface Props {
+  title: string;
+}
+
+const { title } = Astro.props;
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="description" content="Software Developer" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="icon" type="image/png" href="/icony.png" />
+    <meta property="og:title" content="Yasser Chouket" />
+    <meta property="og:description" content="Software Developer" />
+    <meta property="og:image" content="https://yasserchouket.vercel.app/og.image.png" />
+    <meta property="og:url" content="https://yasserchouket.vercel.app" />
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="Yasser Chouket Portfolio" />
+
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      rel="preload"
+      as="style"
+      href="https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,100..900;1,100..900&display=swap"
+    />
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,100..900;1,100..900&display=swap"
+      media="print"
+      onload="this.media='all'"
+    />
+    <noscript>
+      <link
+        rel="stylesheet"
+        href="https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,100..900;1,100..900&display=swap"
+      />
+    </noscript>
+
+    <title>{title}</title>
+  </head>
+  <body class="bg-[--background]">
+    <!-- Fixed positioned loader overlay -->
+    <div id="loaderContainer" class="fixed inset-0 z-[9999] bg-[var(--background)] flex items-center justify-center">
+      <Loader client:load hiddenText={false} />
+    </div>
+    
+    <!-- Main content with proper padding -->
+    <div id="mainContent" class="hidden md:px-48 lg:px-20 px-9">
+      <slot />
+    </div>
+
+    
+    <ChatManager client:load />
+  </body>
+</html>
+
+<style is:global>
+  :root {
+    --background: #101010;
+    --sec: #a476ff;
+    --white: #dfdfdf;
+    --white-icon: #f3f3f398;
+    --white-icon-tr: #f3f3f310;
+  }
+
+  * {
+    font-family:
+      "montserrat",
+      -apple-system,
+      system-ui,
+      sans-serif;
+    box-sizing: border-box;
+    padding: 0;
+    margin: 0;
+  }
+
+  *::selection {
+    background-color: var(--sec);
+    color: var(--background);
+  }
+
+  /* Hide loader transition */
+  #loaderContainer.fade-out {
+    opacity: 0;
+    transition: opacity 0.5s ease-out;
+  }
+
+  /* Show content transition */
+  #mainContent.show {
+    opacity: 0;
+    animation: fadeIn 0.5s ease-in forwards;
+  }
+
+  @keyframes fadeIn {
+    to {
+      opacity: 1;
+    }
+  }
+
+  /* Scrollbar styles */
+  ::-webkit-scrollbar {
+    width: 15px;
+  }
+
+  ::-webkit-scrollbar-track {
+    background: var(--container);
+    border-radius: 30px;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background: var(--background);
+    border-radius: 10px;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    background: var(--pink);
+  }
+
+  /* Scrollbar styles for Firefox */
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: var(--line) var(--container);
+  }
+</style>
+
+<script>
+  // Enhanced script to handle loader transition
+  document.addEventListener('DOMContentLoaded', () => {
+    console.log('DOM loaded, starting loader timer...');
+    
+    setTimeout(() => {
+      const loaderContainer = document.getElementById('loaderContainer');
+      const mainContent = document.getElementById('mainContent');
+      
+      console.log('Hiding loader and showing content...');
+      
+      if (loaderContainer && mainContent) {
+        // Add fade out class to loader
+        loaderContainer.classList.add('fade-out');
+        
+        // Show main content
+        mainContent.classList.remove('hidden');
+        mainContent.classList.add('show');
+        
+        // Remove loader completely after transition
+        setTimeout(() => {
+          loaderContainer.style.display = 'none';
+        }, 500);
+      }
+    }, 2500); // 2.5 seconds
+  });
+
+  // Chat functionality script
+  document.addEventListener('DOMContentLoaded', () => {
+    let isChatOpen = false;
+    let chatRoot: any = null;
+
+    const chatButton = document.getElementById('floating-chat-toggle');
+    const chatContainer = document.getElementById('chat-terminal-container');
+
+    if (chatButton && chatContainer) {
+      chatButton.addEventListener('click', () => {
+        isChatOpen = !isChatOpen;
+        
+        if (isChatOpen) {
+          if (!chatRoot) {
+            chatRoot = createRoot(chatContainer);
+          }
+          
+          chatRoot.render(
+            createElement(ChatTerminal, {
+              isOpen: true,
+              onClose: () => {
+                isChatOpen = false;
+                chatButton.style.display = 'flex'; // Show button when chat closes
+                if (chatRoot) {
+                  chatRoot.render(
+                    createElement(ChatTerminal, {
+                      isOpen: false,
+                      onClose: () => {}
+                    })
+                  );
+                }
+              }
+            })
+          );
+          
+          // Hide the floating button when chat is open (optional)
+          chatButton.style.display = 'none';
+        }
+      });
+    }
+  });
+</script>
