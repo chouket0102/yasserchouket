@@ -228,10 +228,12 @@ const projects = [
       
       readMoreToggles.forEach(toggle => {
         toggle.addEventListener('click', (e) => {
-          const button = e.currentTarget;
-          const descriptionText = button.parentElement.querySelector('.description-text');
+          const button = e.currentTarget as HTMLButtonElement;
+          const descriptionText = button.parentElement?.querySelector('.description-text');
           const icon = button.querySelector('.read-more-icon');
           const textSpan = button.querySelector('.read-more-text');
+          
+          if (!descriptionText || !icon || !textSpan) return;
           
           // Toggle expanded state
           const isExpanded = descriptionText.classList.toggle('expanded');
